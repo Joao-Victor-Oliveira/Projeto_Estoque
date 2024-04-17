@@ -114,112 +114,86 @@
         });
 
         $(document).ready(function() { // Script para buscar o produto a partir do ID
-            // Script para buscar o produto a partir do ID
             $('#buscarProdutoBtn').click(function() {
-                var produtoIdNotEmpty = false;
-
-                // Itera sobre todos os campos de ID do produto
-                $('input[name$="produto_id"]').each(function() {
-                    var produtoId = $(this).val();
-                    if (produtoId) {
-                        produtoIdNotEmpty = true;
-
-                        $.ajax({
-                            url: "/buscar-produto-venda/",  // URL correspondente à view para buscar o produto
-                            type: "GET",
-                            data: {'id': produtoId},
-                            success: function(response) {
-                                if (!response.error) {
-                                    // Preencher os campos do formulário com os dados do produto
-                                    $('[name$="produto_nome"]').val(response.nome);
-                                    $('[name$="produto_preco"]').val(response.preco);
-                                    $('[name$="produto_estoque"]').val(response.estoque);
-                                } else {
-                                    alert(response.error);
-                                }
-                            },
-                            error: function(xhr, errmsg, err) {
-                                alert('Erro ao buscar produto.');
+                var produtoId = $('#id_produto_id').val();
+                if (produtoId) {
+                    $.ajax({
+                        url: "/buscar-produto-venda/",  // URL correspondente à view para buscar o produto
+                        type: "GET",
+                        data: {'id': produtoId},
+                        success: function(response) {
+                            if (!response.error) {
+                                // Preencher os campos do formulário com os dados do produto
+                                $('#id_produto_nome').val(response.nome);
+                                $('#id_produto_preco').val(response.preco);
+                                $('#id_produto_estoque').val(response.estoque);
+                            } else {
+                                alert(response.error);
                             }
-                        });
-
-                        return false; // Sai do loop se encontrar um ID não vazio
-                    }
-                });
-                if (!produtoIdNotEmpty) {
+                        },
+                        error: function(xhr, errmsg, err) {
+                            alert('Erro ao buscar produto.');
+                        }
+                    });
+                } else {
                     alert('Por favor, insira o ID do produto antes de buscar.');
                 }
             });
-
         });
-        // Script para calcular o preço total
+        // Script para calcular o
         $(document).ready(function() { 
-            // Acionar cálculo quando houver mudança na quantidade
-            $('[name$="quantidade"]').on('change', function() {
-                calcularPrecoTotal();
-            });
-
-            // Acionar cálculo quando houver mudança no preço unitário
-            $('[name$="produto_preco"]').on('change', function() {
-                calcularPrecoTotal();
-            });
-
-            // Acionar cálculo quando houver mudança no desconto
-            $('#id_desconto').on('change', function() {
-                calcularPrecoTotal();
-            });
-
-            // Função para calcular o preço total
-            function calcularPrecoTotal() {
-                console.log("Calculando preço total...");
-                var precoTotalField = $('#id_preco_total');
-
-                var quantidade = parseInt($('#produtos [name$="quantidade"]').val());
-                var estoque = parseInt($('#produtos [name$="produto_estoque"]').val());
-                var precoUnitario = parseFloat($('#produtos [name$="produto_preco"]').val());
-                var desconto = parseFloat($('#id_desconto').val());
-
-                console.log(`Quantidade: ${quantidade}`);
-                console.log(`Estoque: ${estoque}`);
-                console.log(`Preço unitário: ${precoUnitario}`);
-                console.log(`Desconto: ${desconto}`);
-
-                if (!isNaN(quantidade) && !isNaN(precoUnitario)) {
-                    if (quantidade > estoque) {
-                        alert('Quantidade excede o estoque disponível.');
-                        $('#produtos [name$="quantidade"]').val(''); 
-                        precoTotalField.val('');
-                    } 
-                    else if (quantidade <= 0) {
-                        alert('Quantidade deve ser um valor positivo.');
-                        $('#produtos [name$="quantidade"]').val(''); 
-                        precoTotalField.val('');
-                    }
-                    else {
-                        var precoTotal = quantidade * precoUnitario;
-                        console.log("Preço total antes do desconto:", precoTotal);
-
-                        if (!isNaN(desconto)) {
-                            console.log(`Aplicando desconto de ${desconto}%`);
-                            if(desconto >= 0 && desconto <= 100){
-                                var precoComDesconto = precoTotal * (1 - desconto / 100);
-                                console.log("Preço total com desconto:", precoComDesconto);
-                                precoTotalField.val(precoComDesconto.toFixed(2));
-                            }
-                            else{
-                                alert('Desconto deve ser um valor entre 0 e 100.');
-                                $('#id_desconto').val(''); 
-                                precoTotalField.val('');
-                            }
+            $('#produtos').on('input', function() {
+                console.log("Evento de input acionado"); 
+                $('.produto-form').each(function() {
+                    console.log("Iterando sobre um formulário de produto");
+                    var quantidade = parseInt($(this).find('[name$="quantidade"]').val());
+                    var estoque = parseInt($(this).find('[name$="produto_estoque"]').val());
+                    var precoUnitario = parseFloat($(this).find('[name$="produto_preco"]').val());
+                    var desconto = parseFloat($('#id_desconto').val());
+                    var precoTotalField = $('#id_preco_total');
+        
+                    console.log(`Quantidade: ${quantidade}`);
+                    console.log(`Estoque: ${estoque}`);
+                    console.log(`Preço unitário: ${precoUnitario}`);
+                    console.log(`Desconto: ${desconto}`);
+        
+                    if (!isNaN(quantidade) && !isNaN(precoUnitario)) {
+                        if (quantidade > estoque) {
+                            alert('Quantidade excede o estoque disponível.');
+                            $(this).find('[name$="quantidade"]').val(''); 
+                            precoTotalField.val('');
+                        } 
+                        else if (quantidade <= 0) {
+                            alert('Quantidade deve ser um valor positivo.');
+                            $(this).find('[name$="quantidade"]').val(''); 
+                            precoTotalField.val('');
                         }
                         else {
-                            console.log(`Desconto inválido: ${desconto}`);
-                            precoTotalField.val(precoTotal.toFixed(2));
+                            var precoTotal = quantidade * precoUnitario;
+                            if (!isNaN(desconto)) {
+                                console.log(`Desconto válido: ${desconto}`);
+                                if(desconto >= 0 && desconto <= 100){
+                                    var precoComDesconto = precoTotal * (1 - desconto / 100);
+                                    precoTotalField.val(precoComDesconto.toFixed(2));
+                                }
+                                else{
+                                    alert('Desconto deve ser um valor entre 0 e 100.');
+                                    $('#id_desconto').val(''); 
+                                    precoTotalField.val('');
+                                }
+                            }
+                            else {
+                                console.log(`Desconto inválido: ${desconto}`);
+                                precoTotalField.val(precoTotal.toFixed(2));
+                            }
                         }
                     }
-                }
-            }
+                    console.log(`Preço total: ${precoTotalField.val()}`);
+                });
+            });
         });
+        
+        
 
         $(document).ready(function() {
             // Adicionar produto
